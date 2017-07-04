@@ -19,5 +19,5 @@ m8b:
 
 .PHONY: clean
 clean:
-	-rm ${OUT} ${OBJ}
+	-rm *.out
 
