@@ -13,9 +13,6 @@ int main(int argc, char **argv) {
 	Mix_Music *ree = Mix_LoadMUS("ree.ogg");
 	Mix_VolumeMusic(128);
 
-	const int WIN_WIDTH = 640;
-	const int WIN_HEIGHT = 480;
-
 	SDL_Rect screenBounds;
 	SDL_GetDisplayUsableBounds(0, &screenBounds);
 	SDL_Window *win = SDL_CreateWindow("REEEEEEEEEEE!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenBounds.h * .9, screenBounds.h * .9, 0);
@@ -35,9 +32,12 @@ int main(int argc, char **argv) {
 	srand(time(NULL));
 	int r;
 	//*/
-
-	const int nbLines = WIN_HEIGHT / pepeRect.h;
-	const int nbCols = WIN_WIDTH / pepeRect.w;
+	
+	int nbLines;
+	int nbCols;
+	SDL_GetWindowSize(win, &nbCols, &nbLines);
+	nbLines /= pepeRect.h;
+	nbCols /= pepeRect.w;
 	int visited[nbLines][nbCols];
 	const int maxVisits = 1;
 	int i, j;
