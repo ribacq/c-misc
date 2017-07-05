@@ -6,7 +6,7 @@ CFLAGS = -Wall
 all: pepe hilbertCurve jgol m8b
 
 pepe:
-	${CC} ${CFLAGS} -lSDL2 -lSDL2_image -o pepe.out pepe.c
+	${CC} ${CFLAGS} -lSDL2 -lSDL2_image -lSDL2_mixer -o pepe.out pepe.c
 
 hilbertCurve:
 	${CC} ${CFLAGS} -lSDL2 -lm -o hilbertCurve.out hilbertCurve.c

@@ -5,7 +5,6 @@
 
 #include <SDL2/SDL.h>
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -35,14 +34,14 @@ int main(int argc, char **argv) {
 
 	SDL_Init(SDL_INIT_VIDEO);
 	char *winTitle = (char *) calloc(256, sizeof(char));
-	SDL_Window *win = SDL_CreateWindow("The Hilbert Curve", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 650, 650, 0);
-	SDL_Surface *surf = SDL_GetWindowSurface(win);
-	SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(surf);
+	SDL_Rect screenBounds;
+	SDL_GetDisplayUsableBounds(0, &screenBounds);
+	SDL_Window *win = SDL_CreateWindow("The Hilbert Curve", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenBounds.h * .9, screenBounds.h * .9, 0);
+	SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE);
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xff);
 	SDL_RenderClear(renderer);
 	SDL_RenderPresent(renderer);
-	SDL_UpdateWindowSurface(win);
 	
 	int lenRotSide = 1;
 	int lenMustRot = 2;
@@ -91,7 +90,7 @@ int main(int argc, char **argv) {
 		points[0] = (SDL_Point) { .x = 1, .y = 1 };
 		int dx = rotSide[0] ? 0 : 2;
 		int dy = rotSide[0] ? 2 : 0;
-		sprintf(winTitle, "The Hilbert Curve (%d)", iter + 1);
+		sprintf(winTitle, "The Hilbert Curve #%d", iter + 1);
 		SDL_SetWindowTitle(win, winTitle);
 		SDL_RenderSetLogicalSize(renderer, sqrt(lenPoints) * 2 + 1, sqrt(lenPoints) * 2 + 1);
 		SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0x88);
@@ -102,18 +101,17 @@ int main(int argc, char **argv) {
 			points[i + 1] = (SDL_Point) { .x = points[i].x + dx, .y = points[i].y + dy };
 
 			//show on screen
-			SDL_SetRenderDrawColor(renderer, 0xff * ((float) (i % maxIter) / maxIter), 0x66 * ((float) iter / maxIter), 0x22 * (1 - (float) ((i % (2 * maxIter)) / (2 * maxIter))), 0xcc);
+			SDL_SetRenderDrawColor(renderer, 0xff * ((float) (i % maxIter) / maxIter), 0x88 * (1 - (float) iter / maxIter), 0x44 * (1 - (float) ((i % (2 * maxIter)) / (2 * maxIter))), 0xff);
 			SDL_RenderDrawLine(renderer, points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+			SDL_RenderPresent(renderer);
 		}
-		SDL_RenderPresent(renderer);
-		SDL_UpdateWindowSurface(win);
-		free(points);
 
 		SDL_Event e;
 		do {
 			SDL_FlushEvent(SDL_KEYUP);
 			SDL_WaitEvent(&e);
 		} while (e.type != SDL_KEYUP);
+		free(points);
 	}
 
 	//clean up and exit
@@ -121,7 +119,6 @@ int main(int argc, char **argv) {
 	free(rotSide);
 	free(mustRot);
 	SDL_DestroyRenderer(renderer);
-	SDL_FreeSurface(surf);
 	SDL_DestroyWindow(win);
 	SDL_Quit();
 	return EXIT_SUCCESS;

@@ -1,28 +1,40 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 #include <time.h>
 #include <stdlib.h>
 
 int main(int argc, char **argv) {
 	SDL_Init(SDL_INIT_VIDEO);
 	IMG_Init(IMG_INIT_PNG);
+	Mix_Init(MIX_INIT_OGG);
+
+	Mix_OpenAudio(22500, MIX_DEFAULT_FORMAT, 2, 4096);
+	Mix_Music *ree = Mix_LoadMUS("ree.ogg");
+	Mix_VolumeMusic(128);
 
 	const int WIN_WIDTH = 640;
 	const int WIN_HEIGHT = 480;
-	SDL_Window *window = SDL_CreateWindow("REEEEEEE!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_WIDTH, WIN_HEIGHT, 0);
 
-	SDL_Surface *winSurf = SDL_GetWindowSurface(window);
-	Uint32 winColor = SDL_MapRGB(winSurf->format, 0x44, 0x44, 0x44);
-	SDL_FillRect(winSurf, NULL, winColor);
+	SDL_Rect screenBounds;
+	SDL_GetDisplayUsableBounds(0, &screenBounds);
+	SDL_Window *win = SDL_CreateWindow("REEEEEEEEEEE!", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenBounds.h * .9, screenBounds.h * .9, 0);
+	SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE);
+	SDL_SetRenderDrawColor(renderer, 0x44, 0xff, 0x44, 0xff);
+	SDL_RenderClear(renderer);
 
 	SDL_Surface *pepeSurf = IMG_Load("pepe.png");
+	SDL_Texture *pepeTex = SDL_CreateTextureFromSurface(renderer, pepeSurf);
+	SDL_FreeSurface(pepeSurf);
 	SDL_Rect pepeRect = (SDL_Rect) { .x = 0, .y = 0, .w = pepeSurf->w, .h = pepeSurf->h };
-	SDL_Renderer *renderer = SDL_CreateSoftwareRenderer(winSurf);
-	SDL_SetRenderDrawColor(renderer, 0x00, 0x88, 0x22, 0x00);
-	SDL_BlitSurface(pepeSurf, NULL, winSurf, &pepeRect);
+	SDL_RenderCopy(renderer, pepeTex, NULL, &pepeRect);
 
+	SDL_RenderPresent(renderer);
+	
+	/*/
 	srand(time(NULL));
 	int r;
+	//*/
 
 	const int nbLines = WIN_HEIGHT / pepeRect.h;
 	const int nbCols = WIN_WIDTH / pepeRect.w;
@@ -39,7 +51,10 @@ int main(int argc, char **argv) {
 		if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_q)) {
 			quit = 1;
 		} else if (e.type == SDL_KEYDOWN) {
-			SDL_FillRect(winSurf, &pepeRect, winColor);
+			SDL_SetRenderDrawColor(renderer, 0x44, 0xff, 0x44, 0xff);
+			SDL_RenderFillRect(renderer, &pepeRect);
+
+			SDL_SetRenderDrawColor(renderer, 0x00, 0x88, 0x22, 0xff);
 			SDL_RenderDrawLine(renderer, oldPepeRect.x + oldPepeRect.w / 2, oldPepeRect.y + oldPepeRect.h / 2, pepeRect.x + pepeRect.w / 2, pepeRect.y + pepeRect.h / 2);
 
 			pepeLine = pepeRect.y / pepeRect.h;
@@ -47,45 +62,56 @@ int main(int argc, char **argv) {
 			visited[pepeLine][pepeCol]++;
 
 			SDL_Keycode key = e.key.keysym.sym;
+			/*/
 			r = rand() % 10;
-			//key = r==0 ? SDLK_t : r==1 ? SDLK_s : r==2 ? SDLK_r : r==3 ? SDLK_n : key;
+			key = r==0 ? SDLK_t : r==1 ? SDLK_s : r==2 ? SDLK_r : r==3 ? SDLK_n : key;
+			//*/
 			switch (key) {
 			case SDLK_t:
 				if (pepeCol > 0 && visited[pepeLine][pepeCol - 1] < maxVisits) {
 					oldPepeRect = pepeRect;
 					pepeRect.x -= pepeRect.w;
+				} else {
+					Mix_PlayMusic(ree, 1);
 				}
 				break;
 			case SDLK_s:
 				if (pepeLine < nbLines - 1 && visited[pepeLine + 1][pepeCol] < maxVisits) {
 					oldPepeRect = pepeRect;
 					pepeRect.y += pepeRect.h;
+				} else {
+					Mix_PlayMusic(ree, 1);
 				}
 				break;
 			case SDLK_r:
 				if (pepeLine > 0 && visited[pepeLine - 1][pepeCol] < maxVisits) {
 					oldPepeRect = pepeRect;
 					pepeRect.y -= pepeRect.h;
+				} else {
+					Mix_PlayMusic(ree, 1);
 				}
 				break;
 			case SDLK_n:
 				if (pepeCol < nbCols - 1 && visited[pepeLine][pepeCol + 1] < maxVisits) {
 					oldPepeRect = pepeRect;
 					pepeRect.x += pepeRect.w;
+				} else {
+					Mix_PlayMusic(ree, 1);
 				}
 				break;
 			}
+
 			SDL_RenderDrawLine(renderer, oldPepeRect.x + oldPepeRect.w / 2, oldPepeRect.y + oldPepeRect.h / 2, pepeRect.x + pepeRect.w / 2, pepeRect.y + pepeRect.h / 2);
+			SDL_RenderCopy(renderer, pepeTex, NULL, &pepeRect);
 			SDL_RenderPresent(renderer);
-			SDL_BlitSurface(pepeSurf, NULL, winSurf, &pepeRect);
 		}
-		SDL_UpdateWindowSurface(window);
 	}
 
+	Mix_FreeMusic(ree);
 	SDL_DestroyRenderer(renderer);
-	SDL_FreeSurface(pepeSurf);
-	SDL_FreeSurface(winSurf);
-	SDL_DestroyWindow(window);
+	SDL_DestroyTexture(pepeTex);
+	SDL_DestroyWindow(win);
+	Mix_CloseAudio();
 	IMG_Quit();
 	SDL_Quit();
 
